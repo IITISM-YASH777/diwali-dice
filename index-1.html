@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFF6E6">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Rockets &amp; Smoke Dice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap">
+<style>
+/* Layout: one phone screen. Title on top, a 3D dice that tumbles and lands in the middle, a roll button, house rules at the bottom, warm phuljhadi sparks drifting behind. */
+:root {
+  --cream: #FFF6E6;
+  --peach: #FBE9CC;
+  --green: #2E7D32;
+  --green-dk: #1B5E20;
+  --saffron: #E8762C;
+  --ink: #2B1B12;
+  --pip-one: #D32F2F;
+  --face-hi: #FFFFFF;
+  --face-lo: #FFF1D2;
+  --font: "Comic Sans MS", "Comic Neue", "Chalkboard SE", "Comic Sans", cursive;
+  --s: min(38vw, 9.5rem);
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body {
+  background: radial-gradient(120% 80% at 50% 38%, var(--cream) 0%, var(--peach) 100%);
+  background-color: var(--cream);
+  color: var(--green-dk);
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+#sparks { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.app {
+  position: relative; z-index: 1;
+  min-height: 100%;
+  box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  gap: 1rem;
+  padding-block: 1.25rem 1rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  text-align: center;
+}
+header { display: grid; gap: .15rem; }
+.eyebrow { font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--saffron); }
+h1 { margin: 0; font-size: clamp(2rem, 9vw, 2.6rem); line-height: 1.05; font-weight: 700; color: var(--green-dk); text-wrap: balance; }
+
+.stage { display: grid; justify-items: center; gap: 1rem; width: 100%; }
+
+/* ---------- 3D dice ---------- */
+#dice {
+  appearance: none; border: 0; padding: 0; background: none; cursor: pointer;
+  width: calc(var(--s) * 1.7); max-width: 100%; height: calc(var(--s) * 1.75);
+  display: grid; place-items: center; position: relative;
+  touch-action: manipulation; border-radius: 1rem;
+}
+#dice:focus-visible { outline: 4px dashed var(--saffron); outline-offset: 6px; }
+.shadow {
+  position: absolute; left: 50%; bottom: 2%;
+  width: calc(var(--s) * 1.15); height: calc(var(--s) * .2);
+  transform: translateX(-50%); border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(43, 27, 18, .32), rgba(43, 27, 18, 0));
+}
+.scene { display: block; width: var(--s); height: var(--s); perspective: 700px; }
+.hop, .tilt, .cube { display: block; width: 100%; height: 100%; position: relative; transform-style: preserve-3d; }
+.tilt { transform: rotateX(-20deg) rotateY(-26deg); transition: transform .45s ease; }
+#dice.flat .tilt { transform: none; }
+.cube { transform: rotateX(-14deg) rotateY(72deg); transition: transform 1.15s cubic-bezier(.18,.75,.25,1); }
+.side, .core {
+  display: block; position: absolute; inset: 0; box-sizing: border-box;
+}
+.core { background: var(--green-dk); }
+.side {
+  border-radius: 16%;
+  background: linear-gradient(150deg, var(--face-hi) 0%, var(--face-lo) 100%);
+  border: calc(var(--s) * .035) solid var(--green-dk);
+  box-shadow: inset 0 0 calc(var(--s) * .08) rgba(232, 118, 44, .18);
+  display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+  padding: 13%; gap: 4%;
+}
+.side::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(145deg, rgba(255,255,255,.35), rgba(0,0,0,.05)); pointer-events: none; }
+.f1, .c1 { transform: translateZ(calc(var(--s) / 2)); }
+.f6, .c6 { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); }
+.f3, .c3 { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); }
+.f4, .c4 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
+.f2, .c2 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); }
+.f5, .c5 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); }
+.core.c1 { transform: translateZ(calc(var(--s) / 2 - 2px)); }
+.core.c6 { transform: rotateY(180deg) translateZ(calc(var(--s) / 2 - 2px)); }
+.core.c3 { transform: rotateY(90deg) translateZ(calc(var(--s) / 2 - 2px)); }
+.core.c4 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2 - 2px)); }
+.core.c2 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2 - 2px)); }
+.core.c5 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2 - 2px)); }
+.slot { display: grid; place-items: center; }
+.pip {
+  display: block; width: 82%; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #3E9B46 0%, var(--green-dk) 70%);
+  box-shadow: inset 0 .1rem .15rem rgba(0,0,0,.35);
+}
+.f1 .pip { width: 130%; background: radial-gradient(circle at 35% 30%, #F0625A 0%, var(--pip-one) 70%); }
+#dice.rolling .hop { animation: hop 1.15s cubic-bezier(.3,.7,.3,1); }
+#dice.rolling .shadow { animation: squish 1.15s cubic-bezier(.3,.7,.3,1); }
+@keyframes hop {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-38%); }
+  60% { transform: translateY(0); }
+  75% { transform: translateY(-9%); }
+  100% { transform: translateY(0); }
+}
+@keyframes squish {
+  0%, 60%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  30% { transform: translateX(-50%) scale(.6); opacity: .5; }
+  75% { transform: translateX(-50%) scale(.9); }
+}
+
+.result { min-height: 4.4rem; display: grid; align-content: center; gap: .1rem; }
+.result .big { font-size: 2.1rem; font-weight: 700; line-height: 1.1; color: var(--green-dk); }
+.result .small { font-size: 1.05rem; font-weight: 700; color: var(--green); }
+.result.pop { animation: pop .35s ease-out; }
+@keyframes pop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+
+.roll-btn {
+  appearance: none; border: 0; cursor: pointer;
+  font-family: var(--font); font-weight: 700; font-size: 1.3rem;
+  color: var(--face-hi); background: var(--green);
+  padding: .75rem 2.4rem; border-radius: 999px;
+  box-shadow: 0 .3rem 0 var(--green-dk);
+  touch-action: manipulation;
+}
+.roll-btn:active { transform: translateY(.2rem); box-shadow: 0 .1rem 0 var(--green-dk); }
+.roll-btn:disabled { opacity: .55; cursor: default; }
+.roll-btn:focus-visible { outline: 3px dashed var(--saffron); outline-offset: 4px; }
+
+.history { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .4rem; min-height: 2rem; font-size: .9rem; font-weight: 700; color: var(--green); }
+.chip {
+  display: inline-grid; place-items: center;
+  width: 1.9rem; height: 1.9rem; border-radius: .5rem;
+  background: var(--face-hi); border: 2px solid var(--green); color: var(--green-dk);
+  font-variant-numeric: tabular-nums;
+}
+.chip.latest { background: var(--green); color: var(--face-hi); }
+
+.rules {
+  width: 100%; max-width: 30rem;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem;
+  font-size: .9rem; font-weight: 700; color: var(--green-dk); text-align: left;
+}
+.rule { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.rule svg { flex: 0 0 2rem; width: 2rem; height: 2rem; }
+.rule span { min-width: 0; line-height: 1.2; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cube, .tilt { transition: none; }
+  #dice.rolling .hop, #dice.rolling .shadow, .result.pop { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="sparks" aria-hidden="true"></canvas>
+<main class="app">
+  <header>
+    <div class="eyebrow">Diwali Unwrapped</div>
+    <h1>Rockets &amp; Smoke</h1>
+  </header>
+
+  <section class="stage">
+    <button id="dice" type="button" aria-label="Roll the dice">
+      <span class="shadow"></span>
+      <span class="scene"><span class="hop"><span class="tilt"><span class="cube" id="cube"></span></span></span></span>
+    </button>
+    <div class="result" id="result" aria-live="polite">
+      <div class="big" id="big">Tap to roll</div>
+      <div class="small" id="small">Every number has an equal 1 in 6 chance</div>
+    </div>
+    <button id="rollBtn" class="roll-btn" type="button">Roll the dice</button>
+    <div class="history" id="history" aria-label="Last rolls"></div>
+  </section>
+
+  <section class="rules" aria-label="Board rules">
+    <div class="rule">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 32 L14 26" stroke="#FFC107" stroke-width="4" stroke-linecap="round"/><path d="M14 18 L22 26 L14 30 L10 26 Z" fill="#E8762C"/><rect x="15" y="10" width="11" height="17" rx="3" transform="rotate(45 20.5 18.5)" fill="#E53935" stroke="#fff" stroke-width="1.5"/><path d="M27 7 L33 7 L33 13 Z" fill="#FFC107"/></svg>
+      <span>Rocket: fly up to its square</span>
+    </div>
+    <div class="rule">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><g fill="#555A61"><circle cx="13" cy="21" r="8"/><circle cx="21" cy="16" r="9"/><circle cx="28" cy="21" r="8"/><circle cx="20" cy="25" r="8"/></g><circle cx="17" cy="21" r="2.4" fill="#fff"/><circle cx="24" cy="21" r="2.4" fill="#fff"/><path d="M17 28 Q20.5 25.5 24 28" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      <span>Smoke: drift down to its square</span>
+    </div>
+    <div class="rule">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><ellipse cx="20" cy="31" rx="15" ry="4" fill="#C9A227"/><g fill="#F39C12" stroke="#C26A00" stroke-width="1.2"><circle cx="13" cy="25" r="6"/><circle cx="27" cy="25" r="6"/><circle cx="20" cy="25" r="6"/><circle cx="16.5" cy="16" r="6"/><circle cx="23.5" cy="16" r="6"/></g></svg>
+      <span>Sweets square: roll again</span>
+    </div>
+    <div class="rule">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 20 m0 -2 a2 2 0 1 1 -2 2 a4 4 0 1 1 4 4 a6 6 0 1 1 -6 -6 a8 8 0 1 1 8 8 a10 10 0 1 1 -10 -10" fill="none" stroke="#AD1457" stroke-width="3" stroke-linecap="round"/><g stroke-linecap="round" stroke-width="2.4"><path d="M20 2 V6" stroke="#E53935"/><path d="M38 20 H34" stroke="#1E88E5"/><path d="M20 38 V34" stroke="#43A047"/><path d="M2 20 H6" stroke="#FFC107"/></g></svg>
+      <span>Chakri: swap places with the player before you</span>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var LAYOUT = { 1: [5], 2: [1, 9], 3: [1, 5, 9], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
+  // Cube rotation that brings each face to the front (standard dice: opposite faces add up to 7)
+  var BASE = { 1: [0, 0], 2: [-90, 0], 3: [0, -90], 4: [0, 90], 5: [90, 0], 6: [0, 180] };
+  var dice = document.getElementById("dice");
+  var cube = document.getElementById("cube");
+  var result = document.getElementById("result");
+  var big = document.getElementById("big");
+  var small = document.getElementById("small");
+  var historyEl = document.getElementById("history");
+  var rollBtn = document.getElementById("rollBtn");
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var rolling = false;
+  var history = [];
+  var wakeLock = null;
+  var curX = -14, curY = 72;
+
+  // build the six faces
+  for (var v = 1; v <= 6; v++) {
+    var core = document.createElement("span");
+    core.className = "core c" + v;
+    cube.appendChild(core);
+  }
+  for (var f = 1; f <= 6; f++) {
+    var side = document.createElement("span");
+    side.className = "side f" + f;
+    for (var i = 1; i <= 9; i++) {
+      var slot = document.createElement("span");
+      slot.className = "slot";
+      if (LAYOUT[f].indexOf(i) !== -1) {
+        var pip = document.createElement("span");
+        pip.className = "pip";
+        slot.appendChild(pip);
+      }
+      side.appendChild(slot);
+    }
+    cube.appendChild(side);
+  }
+
+  // Fair 1-6: crypto random with rejection sampling, Math.random only if crypto is missing
+  function rollValue() {
+    if (window.crypto && window.crypto.getRandomValues) {
+      var buf = new Uint8Array(1);
+      do { window.crypto.getRandomValues(buf); } while (buf[0] >= 252);
+      return (buf[0] % 6) + 1;
+    }
+    return Math.floor(Math.random() * 6) + 1;
+  }
+
+  function land(v) {
+    var b = BASE[v];
+    var spinsX = reduce ? 0 : 1 + Math.floor(Math.random() * 2);
+    var spinsY = reduce ? 0 : 2 + Math.floor(Math.random() * 2);
+    var tx = b[0] + 360 * (Math.ceil((curX - b[0]) / 360) + spinsX);
+    var ty = b[1] + 360 * (Math.ceil((curY - b[1]) / 360) + spinsY);
+    curX = tx; curY = ty;
+    cube.style.transform = "rotateX(" + tx + "deg) rotateY(" + ty + "deg)";
+  }
+
+  function renderHistory() {
+    historyEl.innerHTML = "";
+    if (!history.length) return;
+    var label = document.createElement("span");
+    label.textContent = "Last rolls";
+    historyEl.appendChild(label);
+    history.forEach(function (n, i) {
+      var c = document.createElement("span");
+      c.className = "chip" + (i === 0 ? " latest" : "");
+      c.textContent = n;
+      historyEl.appendChild(c);
+    });
+  }
+
+  function keepAwake() {
+    try {
+      if (!wakeLock && navigator.wakeLock && navigator.wakeLock.request) {
+        navigator.wakeLock.request("screen").then(function (l) {
+          wakeLock = l;
+          l.addEventListener("release", function () { wakeLock = null; });
+        }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && history.length) keepAwake();
+  });
+
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+  function roll() {
+    if (rolling) return;
+    rolling = true;
+    rollBtn.disabled = true;
+    keepAwake();
+    buzz(25);
+    var final = rollValue();
+    big.textContent = "Rolling...";
+    small.textContent = "";
+    result.classList.remove("pop");
+    dice.classList.remove("rolling");
+    dice.classList.remove("flat");
+    void dice.offsetWidth;
+    dice.classList.add("rolling");
+    land(final);
+    setTimeout(function () { dice.classList.add("flat"); }, reduce ? 0 : 700);
+    setTimeout(function () {
+      dice.classList.remove("rolling");
+      dice.classList.add("flat");
+      big.textContent = "You rolled " + final + "!";
+      small.textContent = "Move " + final + (final === 1 ? " square" : " squares");
+      dice.setAttribute("aria-label", "Dice shows " + final + ". Tap to roll again");
+      void result.offsetWidth;
+      result.classList.add("pop");
+      history.unshift(final);
+      if (history.length > 6) history.pop();
+      renderHistory();
+      buzz(40);
+      burst();
+      rollBtn.textContent = "Roll again";
+      rollBtn.disabled = false;
+      rolling = false;
+    }, reduce ? 150 : 1150);
+  }
+
+  dice.addEventListener("click", roll);
+  rollBtn.addEventListener("click", roll);
+
+  // ---------- warm phuljhadi sparks in the background, burst on each roll ----------
+  var canvas = document.getElementById("sparks");
+  var ctx = canvas.getContext("2d");
+  var W = 0, H = 0, dpr = 1;
+  var WARM = ["#FFC107", "#FFB300", "#FFD54F", "#FFCA28", "#F9A825"];
+  var BRIGHT = ["#E53935", "#1E88E5", "#8E24AA", "#D81B60", "#00897B", "#FB8C00", "#43A047", "#FDD835"];
+  var drift = [], pops = [];
+  var running = false;
+
+  function size() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function spawn(top) {
+    return { x: Math.random() * W, y: top ? Math.random() * H : -10, vy: 0.25 + Math.random() * 0.55, vx: (Math.random() - 0.5) * 0.15,
+             r: 0.8 + Math.random() * 1.6, ph: Math.random() * 6.28, c: WARM[(Math.random() * WARM.length) | 0], star: Math.random() < 0.18 };
+  }
+  function star(x, y, s, c, rot) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(rot || 0); ctx.fillStyle = c; ctx.beginPath();
+    for (var k = 0; k < 8; k++) { var a = k * Math.PI / 4 - Math.PI / 2, rr = k % 2 ? s * 0.38 : s; ctx.lineTo(rr * Math.cos(a), rr * Math.sin(a)); }
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < drift.length; i++) {
+      var p = drift[i];
+      var tw = 0.55 + 0.45 * Math.sin(t / 400 + p.ph);
+      ctx.globalAlpha = 0.35 + 0.5 * tw;
+      if (p.star) { star(p.x, p.y, 2.2 + 2 * tw, p.c, 0); }
+      else {
+        ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+        ctx.strokeStyle = p.c; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(p.x, p.y - 2); ctx.lineTo(p.x - p.vx * 8, p.y - 2 - p.vy * 9); ctx.stroke();
+      }
+    }
+    for (var j = 0; j < pops.length; j++) {
+      var q = pops[j];
+      ctx.globalAlpha = Math.max(q.life, 0);
+      star(q.x, q.y, q.s, q.c, q.rot);
+    }
+    ctx.globalAlpha = 1;
+  }
+  function step(t) {
+    for (var i = 0; i < drift.length; i++) {
+      var p = drift[i];
+      p.y += p.vy; p.x += p.vx;
+      if (p.y > H + 10) drift[i] = spawn(false);
+    }
+    for (var j = pops.length - 1; j >= 0; j--) {
+      var q = pops[j];
+      q.x += q.vx; q.y += q.vy; q.vy += 0.12; q.vx *= 0.985; q.rot += 0.08; q.life -= 0.018;
+      if (q.life <= 0) pops.splice(j, 1);
+    }
+    draw(t);
+    if (document.visibilityState === "visible") requestAnimationFrame(step); else running = false;
+  }
+  function start() { if (!running && !reduce) { running = true; requestAnimationFrame(step); } }
+  function burst() {
+    if (reduce) return;
+    var r = dice.getBoundingClientRect();
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    for (var k = 0; k < 26; k++) {
+      var a = Math.random() * 6.283, sp = 2.5 + Math.random() * 4.5;
+      pops.push({ x: cx + Math.cos(a) * r.width * 0.35, y: cy + Math.sin(a) * r.height * 0.35, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.5,
+                  s: 3 + Math.random() * 4, c: BRIGHT[k % BRIGHT.length], rot: Math.random() * 3, life: 1 });
+    }
+    start();
+  }
+
+  size();
+  var count = Math.round(Math.min(60, Math.max(28, W * H / 9000)));
+  for (var n = 0; n < count; n++) drift.push(spawn(true));
+  draw(0);
+  start();
+  window.addEventListener("resize", function () { size(); draw(performance.now()); });
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") start(); });
+})();
+</script>
+</body>
+</html>
