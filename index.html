@@ -10,20 +10,19 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap">
 <style>
-/* Layout: one phone screen. Title on top, a big tappable dice in the middle, house rules as a strip at the bottom, warm phuljhadi sparks drifting behind. */
+/* Layout: one phone screen. Title on top, a 3D dice that tumbles and lands in the middle, a roll button, house rules at the bottom, warm phuljhadi sparks drifting behind. */
 :root {
   --cream: #FFF6E6;
   --peach: #FBE9CC;
   --green: #2E7D32;
   --green-dk: #1B5E20;
   --saffron: #E8762C;
-  --gold: #FFC107;
   --ink: #2B1B12;
-  --smoke: #555A61;
   --pip-one: #D32F2F;
   --face-hi: #FFFFFF;
   --face-lo: #FFF1D2;
   --font: "Comic Sans MS", "Comic Neue", "Chalkboard SE", "Comic Sans", cursive;
+  --s: min(38vw, 9.5rem);
   color-scheme: light;
 }
 html, body { height: 100%; }
@@ -51,48 +50,91 @@ header { display: grid; gap: .15rem; }
 .eyebrow { font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--saffron); }
 h1 { margin: 0; font-size: clamp(2rem, 9vw, 2.6rem); line-height: 1.05; font-weight: 700; color: var(--green-dk); text-wrap: balance; }
 
-.stage { display: grid; justify-items: center; gap: 1.1rem; width: 100%; }
+.stage { display: grid; justify-items: center; gap: 1rem; width: 100%; }
+
+/* ---------- 3D dice ---------- */
 #dice {
   appearance: none; border: 0; padding: 0; background: none; cursor: pointer;
-  width: min(60vw, 15rem); max-width: 100%; aspect-ratio: 1;
-  border-radius: 24%;
-  touch-action: manipulation;
+  width: calc(var(--s) * 1.7); max-width: 100%; height: calc(var(--s) * 1.75);
+  display: grid; place-items: center; position: relative;
+  touch-action: manipulation; border-radius: 1rem;
 }
-#dice:focus-visible { outline: 4px dashed var(--saffron); outline-offset: 10px; }
-.face {
-  width: 100%; height: 100%; box-sizing: border-box;
-  border-radius: 24%;
+#dice:focus-visible { outline: 4px dashed var(--saffron); outline-offset: 6px; }
+.shadow {
+  position: absolute; left: 50%; bottom: 2%;
+  width: calc(var(--s) * 1.15); height: calc(var(--s) * .2);
+  transform: translateX(-50%); border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(43, 27, 18, .32), rgba(43, 27, 18, 0));
+}
+.scene { display: block; width: var(--s); height: var(--s); perspective: 700px; }
+.hop, .tilt, .cube { display: block; width: 100%; height: 100%; position: relative; transform-style: preserve-3d; }
+.tilt { transform: rotateX(-20deg) rotateY(-26deg); transition: transform .45s ease; }
+#dice.flat .tilt { transform: none; }
+.cube { transform: rotateX(-14deg) rotateY(72deg); transition: transform 1.15s cubic-bezier(.18,.75,.25,1); }
+.side, .core {
+  display: block; position: absolute; inset: 0; box-sizing: border-box;
+}
+.core { background: var(--green-dk); }
+.side {
+  border-radius: 16%;
   background: linear-gradient(150deg, var(--face-hi) 0%, var(--face-lo) 100%);
-  border: .3rem solid var(--green-dk);
-  box-shadow: 0 .55rem 0 var(--green-dk), 0 1.2rem 1.8rem rgba(43, 27, 18, .22), inset 0 -.5rem 0 rgba(232, 118, 44, .12);
+  border: calc(var(--s) * .035) solid var(--green-dk);
+  box-shadow: inset 0 0 calc(var(--s) * .08) rgba(232, 118, 44, .18);
   display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
-  padding: 13%;
-  gap: 4%;
+  padding: 13%; gap: 4%;
 }
+.side::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(145deg, rgba(255,255,255,.35), rgba(0,0,0,.05)); pointer-events: none; }
+.f1, .c1 { transform: translateZ(calc(var(--s) / 2)); }
+.f6, .c6 { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); }
+.f3, .c3 { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); }
+.f4, .c4 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
+.f2, .c2 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); }
+.f5, .c5 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); }
+.core.c1 { transform: translateZ(calc(var(--s) / 2 - 2px)); }
+.core.c6 { transform: rotateY(180deg) translateZ(calc(var(--s) / 2 - 2px)); }
+.core.c3 { transform: rotateY(90deg) translateZ(calc(var(--s) / 2 - 2px)); }
+.core.c4 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2 - 2px)); }
+.core.c2 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2 - 2px)); }
+.core.c5 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2 - 2px)); }
 .slot { display: grid; place-items: center; }
 .pip {
-  width: 78%; aspect-ratio: 1; border-radius: 50%;
+  display: block; width: 82%; aspect-ratio: 1; border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #3E9B46 0%, var(--green-dk) 70%);
-  box-shadow: inset 0 .12rem .18rem rgba(0,0,0,.35);
-  transform: scale(0); transition: transform .12s ease-out;
+  box-shadow: inset 0 .1rem .15rem rgba(0,0,0,.35);
 }
-.slot.on .pip { transform: scale(1); }
-.face.one .slot.on .pip { width: 120%; background: radial-gradient(circle at 35% 30%, #F0625A 0%, var(--pip-one) 70%); }
-
-#dice.rolling .face { animation: tumble .8s cubic-bezier(.3,.7,.3,1); }
-@keyframes tumble {
-  0%   { transform: translateY(0) rotate(0) scale(1); }
-  25%  { transform: translateY(-16%) rotate(200deg) scale(.9); }
-  55%  { transform: translateY(5%) rotate(470deg) scale(1.05); }
-  80%  { transform: translateY(-4%) rotate(690deg) scale(.98); }
-  100% { transform: translateY(0) rotate(720deg) scale(1); }
+.f1 .pip { width: 130%; background: radial-gradient(circle at 35% 30%, #F0625A 0%, var(--pip-one) 70%); }
+#dice.rolling .hop { animation: hop 1.15s cubic-bezier(.3,.7,.3,1); }
+#dice.rolling .shadow { animation: squish 1.15s cubic-bezier(.3,.7,.3,1); }
+@keyframes hop {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-38%); }
+  60% { transform: translateY(0); }
+  75% { transform: translateY(-9%); }
+  100% { transform: translateY(0); }
+}
+@keyframes squish {
+  0%, 60%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  30% { transform: translateX(-50%) scale(.6); opacity: .5; }
+  75% { transform: translateX(-50%) scale(.9); }
 }
 
-.result { min-height: 4.6rem; display: grid; align-content: center; gap: .1rem; }
+.result { min-height: 4.4rem; display: grid; align-content: center; gap: .1rem; }
 .result .big { font-size: 2.1rem; font-weight: 700; line-height: 1.1; color: var(--green-dk); }
 .result .small { font-size: 1.05rem; font-weight: 700; color: var(--green); }
 .result.pop { animation: pop .35s ease-out; }
 @keyframes pop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+
+.roll-btn {
+  appearance: none; border: 0; cursor: pointer;
+  font-family: var(--font); font-weight: 700; font-size: 1.3rem;
+  color: var(--face-hi); background: var(--green);
+  padding: .75rem 2.4rem; border-radius: 999px;
+  box-shadow: 0 .3rem 0 var(--green-dk);
+  touch-action: manipulation;
+}
+.roll-btn:active { transform: translateY(.2rem); box-shadow: 0 .1rem 0 var(--green-dk); }
+.roll-btn:disabled { opacity: .55; cursor: default; }
+.roll-btn:focus-visible { outline: 3px dashed var(--saffron); outline-offset: 4px; }
 
 .history { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .4rem; min-height: 2rem; font-size: .9rem; font-weight: 700; color: var(--green); }
 .chip {
@@ -113,8 +155,8 @@ h1 { margin: 0; font-size: clamp(2rem, 9vw, 2.6rem); line-height: 1.05; font-wei
 .rule span { min-width: 0; line-height: 1.2; }
 
 @media (prefers-reduced-motion: reduce) {
-  #dice.rolling .face, .result.pop { animation: none; }
-  .pip { transition: none; }
+  .cube, .tilt { transition: none; }
+  #dice.rolling .hop, #dice.rolling .shadow, .result.pop { animation: none; }
 }
 </style>
 </head>
@@ -129,22 +171,14 @@ h1 { margin: 0; font-size: clamp(2rem, 9vw, 2.6rem); line-height: 1.05; font-wei
 
   <section class="stage">
     <button id="dice" type="button" aria-label="Roll the dice">
-      <div class="face" id="face">
-        <div class="slot" data-i="1"><div class="pip"></div></div>
-        <div class="slot" data-i="2"><div class="pip"></div></div>
-        <div class="slot" data-i="3"><div class="pip"></div></div>
-        <div class="slot" data-i="4"><div class="pip"></div></div>
-        <div class="slot" data-i="5"><div class="pip"></div></div>
-        <div class="slot" data-i="6"><div class="pip"></div></div>
-        <div class="slot" data-i="7"><div class="pip"></div></div>
-        <div class="slot" data-i="8"><div class="pip"></div></div>
-        <div class="slot" data-i="9"><div class="pip"></div></div>
-      </div>
+      <span class="shadow"></span>
+      <span class="scene"><span class="hop"><span class="tilt"><span class="cube" id="cube"></span></span></span></span>
     </button>
     <div class="result" id="result" aria-live="polite">
-      <div class="big" id="big">Tap the dice</div>
-      <div class="small" id="small">Roll as many times as you need</div>
+      <div class="big" id="big">Tap to roll</div>
+      <div class="small" id="small">Every number has an equal 1 in 6 chance</div>
     </div>
+    <button id="rollBtn" class="roll-btn" type="button">Roll the dice</button>
     <div class="history" id="history" aria-label="Last rolls"></div>
   </section>
 
@@ -172,17 +206,42 @@ h1 { margin: 0; font-size: clamp(2rem, 9vw, 2.6rem); line-height: 1.05; font-wei
 (function () {
   "use strict";
   var LAYOUT = { 1: [5], 2: [1, 9], 3: [1, 5, 9], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
+  // Cube rotation that brings each face to the front (standard dice: opposite faces add up to 7)
+  var BASE = { 1: [0, 0], 2: [-90, 0], 3: [0, -90], 4: [0, 90], 5: [90, 0], 6: [0, 180] };
   var dice = document.getElementById("dice");
-  var face = document.getElementById("face");
-  var slots = face.querySelectorAll(".slot");
+  var cube = document.getElementById("cube");
   var result = document.getElementById("result");
   var big = document.getElementById("big");
   var small = document.getElementById("small");
   var historyEl = document.getElementById("history");
+  var rollBtn = document.getElementById("rollBtn");
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var rolling = false;
   var history = [];
   var wakeLock = null;
+  var curX = -14, curY = 72;
+
+  // build the six faces
+  for (var v = 1; v <= 6; v++) {
+    var core = document.createElement("span");
+    core.className = "core c" + v;
+    cube.appendChild(core);
+  }
+  for (var f = 1; f <= 6; f++) {
+    var side = document.createElement("span");
+    side.className = "side f" + f;
+    for (var i = 1; i <= 9; i++) {
+      var slot = document.createElement("span");
+      slot.className = "slot";
+      if (LAYOUT[f].indexOf(i) !== -1) {
+        var pip = document.createElement("span");
+        pip.className = "pip";
+        slot.appendChild(pip);
+      }
+      side.appendChild(slot);
+    }
+    cube.appendChild(side);
+  }
 
   // Fair 1-6: crypto random with rejection sampling, Math.random only if crypto is missing
   function rollValue() {
@@ -194,13 +253,14 @@ h1 { margin: 0; font-size: clamp(2rem, 9vw, 2.6rem); line-height: 1.05; font-wei
     return Math.floor(Math.random() * 6) + 1;
   }
 
-  function show(v) {
-    var on = LAYOUT[v];
-    for (var i = 0; i < slots.length; i++) {
-      slots[i].classList.toggle("on", on.indexOf(i + 1) !== -1);
-    }
-    face.classList.toggle("one", v === 1);
-    dice.setAttribute("aria-label", "Dice shows " + v + ". Tap to roll again");
+  function land(v) {
+    var b = BASE[v];
+    var spinsX = reduce ? 0 : 1 + Math.floor(Math.random() * 2);
+    var spinsY = reduce ? 0 : 2 + Math.floor(Math.random() * 2);
+    var tx = b[0] + 360 * (Math.ceil((curX - b[0]) / 360) + spinsX);
+    var ty = b[1] + 360 * (Math.ceil((curY - b[1]) / 360) + spinsY);
+    curX = tx; curY = ty;
+    cube.style.transform = "rotateX(" + tx + "deg) rotateY(" + ty + "deg)";
   }
 
   function renderHistory() {
@@ -209,10 +269,10 @@ h1 { margin: 0; font-size: clamp(2rem, 9vw, 2.6rem); line-height: 1.05; font-wei
     var label = document.createElement("span");
     label.textContent = "Last rolls";
     historyEl.appendChild(label);
-    history.forEach(function (v, i) {
+    history.forEach(function (n, i) {
       var c = document.createElement("span");
       c.className = "chip" + (i === 0 ? " latest" : "");
-      c.textContent = v;
+      c.textContent = n;
       historyEl.appendChild(c);
     });
   }
@@ -236,39 +296,40 @@ h1 { margin: 0; font-size: clamp(2rem, 9vw, 2.6rem); line-height: 1.05; font-wei
   function roll() {
     if (rolling) return;
     rolling = true;
+    rollBtn.disabled = true;
     keepAwake();
     buzz(25);
     var final = rollValue();
     big.textContent = "Rolling...";
     small.textContent = "";
     result.classList.remove("pop");
-    var duration = reduce ? 150 : 800;
-    var flicker = null;
-    if (!reduce) {
-      dice.classList.remove("rolling");
-      void dice.offsetWidth;
-      dice.classList.add("rolling");
-      flicker = setInterval(function () { show(Math.floor(Math.random() * 6) + 1); }, 70);
-    }
+    dice.classList.remove("rolling");
+    dice.classList.remove("flat");
+    void dice.offsetWidth;
+    dice.classList.add("rolling");
+    land(final);
+    setTimeout(function () { dice.classList.add("flat"); }, reduce ? 0 : 700);
     setTimeout(function () {
-      if (flicker) clearInterval(flicker);
       dice.classList.remove("rolling");
-      show(final);
+      dice.classList.add("flat");
       big.textContent = "You rolled " + final + "!";
       small.textContent = "Move " + final + (final === 1 ? " square" : " squares");
+      dice.setAttribute("aria-label", "Dice shows " + final + ". Tap to roll again");
       void result.offsetWidth;
       result.classList.add("pop");
       history.unshift(final);
       if (history.length > 6) history.pop();
       renderHistory();
-      buzz(final === 6 ? [40, 50, 40] : 40);
+      buzz(40);
       burst();
+      rollBtn.textContent = "Roll again";
+      rollBtn.disabled = false;
       rolling = false;
-    }, duration);
+    }, reduce ? 150 : 1150);
   }
 
   dice.addEventListener("click", roll);
-  show(6);
+  rollBtn.addEventListener("click", roll);
 
   // ---------- warm phuljhadi sparks in the background, burst on each roll ----------
   var canvas = document.getElementById("sparks");
@@ -334,7 +395,7 @@ h1 { margin: 0; font-size: clamp(2rem, 9vw, 2.6rem); line-height: 1.05; font-wei
     var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
     for (var k = 0; k < 26; k++) {
       var a = Math.random() * 6.283, sp = 2.5 + Math.random() * 4.5;
-      pops.push({ x: cx + Math.cos(a) * r.width * 0.42, y: cy + Math.sin(a) * r.height * 0.42, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.5,
+      pops.push({ x: cx + Math.cos(a) * r.width * 0.35, y: cy + Math.sin(a) * r.height * 0.35, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.5,
                   s: 3 + Math.random() * 4, c: BRIGHT[k % BRIGHT.length], rot: Math.random() * 3, life: 1 });
     }
     start();
