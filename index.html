@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFF6E6">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Rockets &amp; Smoke Dice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap">
+<style>
+/* Layout: one phone screen. Title on top, a big tappable dice in the middle, house rules as a strip at the bottom, warm phuljhadi sparks drifting behind. */
+:root {
+  --cream: #FFF6E6;
+  --peach: #FBE9CC;
+  --green: #2E7D32;
+  --green-dk: #1B5E20;
+  --saffron: #E8762C;
+  --gold: #FFC107;
+  --ink: #2B1B12;
+  --smoke: #555A61;
+  --pip-one: #D32F2F;
+  --face-hi: #FFFFFF;
+  --face-lo: #FFF1D2;
+  --font: "Comic Sans MS", "Comic Neue", "Chalkboard SE", "Comic Sans", cursive;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body {
+  background: radial-gradient(120% 80% at 50% 38%, var(--cream) 0%, var(--peach) 100%);
+  background-color: var(--cream);
+  color: var(--green-dk);
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+#sparks { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.app {
+  position: relative; z-index: 1;
+  min-height: 100%;
+  box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  gap: 1rem;
+  padding-block: 1.25rem 1rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  text-align: center;
+}
+header { display: grid; gap: .15rem; }
+.eyebrow { font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--saffron); }
+h1 { margin: 0; font-size: clamp(2rem, 9vw, 2.6rem); line-height: 1.05; font-weight: 700; color: var(--green-dk); text-wrap: balance; }
+
+.stage { display: grid; justify-items: center; gap: 1.1rem; width: 100%; }
+#dice {
+  appearance: none; border: 0; padding: 0; background: none; cursor: pointer;
+  width: min(60vw, 15rem); max-width: 100%; aspect-ratio: 1;
+  border-radius: 24%;
+  touch-action: manipulation;
+}
+#dice:focus-visible { outline: 4px dashed var(--saffron); outline-offset: 10px; }
+.face {
+  width: 100%; height: 100%; box-sizing: border-box;
+  border-radius: 24%;
+  background: linear-gradient(150deg, var(--face-hi) 0%, var(--face-lo) 100%);
+  border: .3rem solid var(--green-dk);
+  box-shadow: 0 .55rem 0 var(--green-dk), 0 1.2rem 1.8rem rgba(43, 27, 18, .22), inset 0 -.5rem 0 rgba(232, 118, 44, .12);
+  display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+  padding: 13%;
+  gap: 4%;
+}
+.slot { display: grid; place-items: center; }
+.pip {
+  width: 78%; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #3E9B46 0%, var(--green-dk) 70%);
+  box-shadow: inset 0 .12rem .18rem rgba(0,0,0,.35);
+  transform: scale(0); transition: transform .12s ease-out;
+}
+.slot.on .pip { transform: scale(1); }
+.face.one .slot.on .pip { width: 120%; background: radial-gradient(circle at 35% 30%, #F0625A 0%, var(--pip-one) 70%); }
+
+#dice.rolling .face { animation: tumble .8s cubic-bezier(.3,.7,.3,1); }
+@keyframes tumble {
+  0%   { transform: translateY(0) rotate(0) scale(1); }
+  25%  { transform: translateY(-16%) rotate(200deg) scale(.9); }
+  55%  { transform: translateY(5%) rotate(470deg) scale(1.05); }
+  80%  { transform: translateY(-4%) rotate(690deg) scale(.98); }
+  100% { transform: translateY(0) rotate(720deg) scale(1); }
+}
+
+.result { min-height: 4.6rem; display: grid; align-content: center; gap: .1rem; }
+.result .big { font-size: 2.1rem; font-weight: 700; line-height: 1.1; color: var(--green-dk); }
+.result .small { font-size: 1.05rem; font-weight: 700; color: var(--green); }
+.result.pop { animation: pop .35s ease-out; }
+@keyframes pop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+
+.history { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .4rem; min-height: 2rem; font-size: .9rem; font-weight: 700; color: var(--green); }
+.chip {
+  display: inline-grid; place-items: center;
+  width: 1.9rem; height: 1.9rem; border-radius: .5rem;
+  background: var(--face-hi); border: 2px solid var(--green); color: var(--green-dk);
+  font-variant-numeric: tabular-nums;
+}
+.chip.latest { background: var(--green); color: var(--face-hi); }
+
+.rules {
+  width: 100%; max-width: 30rem;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem;
+  font-size: .9rem; font-weight: 700; color: var(--green-dk); text-align: left;
+}
+.rule { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.rule svg { flex: 0 0 2rem; width: 2rem; height: 2rem; }
+.rule span { min-width: 0; line-height: 1.2; }
+
+@media (prefers-reduced-motion: reduce) {
+  #dice.rolling .face, .result.pop { animation: none; }
+  .pip { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="sparks" aria-hidden="true"></canvas>
+<main class="app">
+  <header>
+    <div class="eyebrow">Diwali Unwrapped</div>
+    <h1>Rockets &amp; Smoke</h1>
+  </header>
+
+  <section class="stage">
+    <button id="dice" type="button" aria-label="Roll the dice">
+      <div class="face" id="face">
+        <div class="slot" data-i="1"><div class="pip"></div></div>
+        <div class="slot" data-i="2"><div class="pip"></div></div>
+        <div class="slot" data-i="3"><div class="pip"></div></div>
+        <div class="slot" data-i="4"><div class="pip"></div></div>
+        <div class="slot" data-i="5"><div class="pip"></div></div>
+        <div class="slot" data-i="6"><div class="pip"></div></div>
+        <div class="slot" data-i="7"><div class="pip"></div></div>
+        <div class="slot" data-i="8"><div class="pip"></div></div>
+        <div class="slot" data-i="9"><div class="pip"></div></div>
+      </div>
+    </button>
+    <div class="result" id="result" aria-live="polite">
+      <div class="big" id="big">Tap the dice</div>
+      <div class="small" id="small">Roll as many times as you need</div>
+    </div>
+    <div class="history" id="history" aria-label="Last rolls"></div>
+  </section>
+
+  <section class="rules" aria-label="Board rules">
+    <div class="rule">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 32 L14 26" stroke="#FFC107" stroke-width="4" stroke-linecap="round"/><path d="M14 18 L22 26 L14 30 L10 26 Z" fill="#E8762C"/><rect x="15" y="10" width="11" height="17" rx="3" transform="rotate(45 20.5 18.5)" fill="#E53935" stroke="#fff" stroke-width="1.5"/><path d="M27 7 L33 7 L33 13 Z" fill="#FFC107"/></svg>
+      <span>Rocket: fly up to its square</span>
+    </div>
+    <div class="rule">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><g fill="#555A61"><circle cx="13" cy="21" r="8"/><circle cx="21" cy="16" r="9"/><circle cx="28" cy="21" r="8"/><circle cx="20" cy="25" r="8"/></g><circle cx="17" cy="21" r="2.4" fill="#fff"/><circle cx="24" cy="21" r="2.4" fill="#fff"/><path d="M17 28 Q20.5 25.5 24 28" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      <span>Smoke: drift down to its square</span>
+    </div>
+    <div class="rule">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><ellipse cx="20" cy="31" rx="15" ry="4" fill="#C9A227"/><g fill="#F39C12" stroke="#C26A00" stroke-width="1.2"><circle cx="13" cy="25" r="6"/><circle cx="27" cy="25" r="6"/><circle cx="20" cy="25" r="6"/><circle cx="16.5" cy="16" r="6"/><circle cx="23.5" cy="16" r="6"/></g></svg>
+      <span>Sweets square: roll again</span>
+    </div>
+    <div class="rule">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 20 m0 -2 a2 2 0 1 1 -2 2 a4 4 0 1 1 4 4 a6 6 0 1 1 -6 -6 a8 8 0 1 1 8 8 a10 10 0 1 1 -10 -10" fill="none" stroke="#AD1457" stroke-width="3" stroke-linecap="round"/><g stroke-linecap="round" stroke-width="2.4"><path d="M20 2 V6" stroke="#E53935"/><path d="M38 20 H34" stroke="#1E88E5"/><path d="M20 38 V34" stroke="#43A047"/><path d="M2 20 H6" stroke="#FFC107"/></g></svg>
+      <span>Chakri: swap places with the player before you</span>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var LAYOUT = { 1: [5], 2: [1, 9], 3: [1, 5, 9], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
+  var dice = document.getElementById("dice");
+  var face = document.getElementById("face");
+  var slots = face.querySelectorAll(".slot");
+  var result = document.getElementById("result");
+  var big = document.getElementById("big");
+  var small = document.getElementById("small");
+  var historyEl = document.getElementById("history");
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var rolling = false;
+  var history = [];
+  var wakeLock = null;
+
+  // Fair 1-6: crypto random with rejection sampling, Math.random only if crypto is missing
+  function rollValue() {
+    if (window.crypto && window.crypto.getRandomValues) {
+      var buf = new Uint8Array(1);
+      do { window.crypto.getRandomValues(buf); } while (buf[0] >= 252);
+      return (buf[0] % 6) + 1;
+    }
+    return Math.floor(Math.random() * 6) + 1;
+  }
+
+  function show(v) {
+    var on = LAYOUT[v];
+    for (var i = 0; i < slots.length; i++) {
+      slots[i].classList.toggle("on", on.indexOf(i + 1) !== -1);
+    }
+    face.classList.toggle("one", v === 1);
+    dice.setAttribute("aria-label", "Dice shows " + v + ". Tap to roll again");
+  }
+
+  function renderHistory() {
+    historyEl.innerHTML = "";
+    if (!history.length) return;
+    var label = document.createElement("span");
+    label.textContent = "Last rolls";
+    historyEl.appendChild(label);
+    history.forEach(function (v, i) {
+      var c = document.createElement("span");
+      c.className = "chip" + (i === 0 ? " latest" : "");
+      c.textContent = v;
+      historyEl.appendChild(c);
+    });
+  }
+
+  function keepAwake() {
+    try {
+      if (!wakeLock && navigator.wakeLock && navigator.wakeLock.request) {
+        navigator.wakeLock.request("screen").then(function (l) {
+          wakeLock = l;
+          l.addEventListener("release", function () { wakeLock = null; });
+        }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && history.length) keepAwake();
+  });
+
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+  function roll() {
+    if (rolling) return;
+    rolling = true;
+    keepAwake();
+    buzz(25);
+    var final = rollValue();
+    big.textContent = "Rolling...";
+    small.textContent = "";
+    result.classList.remove("pop");
+    var duration = reduce ? 150 : 800;
+    var flicker = null;
+    if (!reduce) {
+      dice.classList.remove("rolling");
+      void dice.offsetWidth;
+      dice.classList.add("rolling");
+      flicker = setInterval(function () { show(Math.floor(Math.random() * 6) + 1); }, 70);
+    }
+    setTimeout(function () {
+      if (flicker) clearInterval(flicker);
+      dice.classList.remove("rolling");
+      show(final);
+      big.textContent = "You rolled " + final + "!";
+      small.textContent = "Move " + final + (final === 1 ? " square" : " squares");
+      void result.offsetWidth;
+      result.classList.add("pop");
+      history.unshift(final);
+      if (history.length > 6) history.pop();
+      renderHistory();
+      buzz(final === 6 ? [40, 50, 40] : 40);
+      burst();
+      rolling = false;
+    }, duration);
+  }
+
+  dice.addEventListener("click", roll);
+  show(6);
+
+  // ---------- warm phuljhadi sparks in the background, burst on each roll ----------
+  var canvas = document.getElementById("sparks");
+  var ctx = canvas.getContext("2d");
+  var W = 0, H = 0, dpr = 1;
+  var WARM = ["#FFC107", "#FFB300", "#FFD54F", "#FFCA28", "#F9A825"];
+  var BRIGHT = ["#E53935", "#1E88E5", "#8E24AA", "#D81B60", "#00897B", "#FB8C00", "#43A047", "#FDD835"];
+  var drift = [], pops = [];
+  var running = false;
+
+  function size() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function spawn(top) {
+    return { x: Math.random() * W, y: top ? Math.random() * H : -10, vy: 0.25 + Math.random() * 0.55, vx: (Math.random() - 0.5) * 0.15,
+             r: 0.8 + Math.random() * 1.6, ph: Math.random() * 6.28, c: WARM[(Math.random() * WARM.length) | 0], star: Math.random() < 0.18 };
+  }
+  function star(x, y, s, c, rot) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(rot || 0); ctx.fillStyle = c; ctx.beginPath();
+    for (var k = 0; k < 8; k++) { var a = k * Math.PI / 4 - Math.PI / 2, rr = k % 2 ? s * 0.38 : s; ctx.lineTo(rr * Math.cos(a), rr * Math.sin(a)); }
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < drift.length; i++) {
+      var p = drift[i];
+      var tw = 0.55 + 0.45 * Math.sin(t / 400 + p.ph);
+      ctx.globalAlpha = 0.35 + 0.5 * tw;
+      if (p.star) { star(p.x, p.y, 2.2 + 2 * tw, p.c, 0); }
+      else {
+        ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+        ctx.strokeStyle = p.c; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(p.x, p.y - 2); ctx.lineTo(p.x - p.vx * 8, p.y - 2 - p.vy * 9); ctx.stroke();
+      }
+    }
+    for (var j = 0; j < pops.length; j++) {
+      var q = pops[j];
+      ctx.globalAlpha = Math.max(q.life, 0);
+      star(q.x, q.y, q.s, q.c, q.rot);
+    }
+    ctx.globalAlpha = 1;
+  }
+  function step(t) {
+    for (var i = 0; i < drift.length; i++) {
+      var p = drift[i];
+      p.y += p.vy; p.x += p.vx;
+      if (p.y > H + 10) drift[i] = spawn(false);
+    }
+    for (var j = pops.length - 1; j >= 0; j--) {
+      var q = pops[j];
+      q.x += q.vx; q.y += q.vy; q.vy += 0.12; q.vx *= 0.985; q.rot += 0.08; q.life -= 0.018;
+      if (q.life <= 0) pops.splice(j, 1);
+    }
+    draw(t);
+    if (document.visibilityState === "visible") requestAnimationFrame(step); else running = false;
+  }
+  function start() { if (!running && !reduce) { running = true; requestAnimationFrame(step); } }
+  function burst() {
+    if (reduce) return;
+    var r = dice.getBoundingClientRect();
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    for (var k = 0; k < 26; k++) {
+      var a = Math.random() * 6.283, sp = 2.5 + Math.random() * 4.5;
+      pops.push({ x: cx + Math.cos(a) * r.width * 0.42, y: cy + Math.sin(a) * r.height * 0.42, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.5,
+                  s: 3 + Math.random() * 4, c: BRIGHT[k % BRIGHT.length], rot: Math.random() * 3, life: 1 });
+    }
+    start();
+  }
+
+  size();
+  var count = Math.round(Math.min(60, Math.max(28, W * H / 9000)));
+  for (var n = 0; n < count; n++) drift.push(spawn(true));
+  draw(0);
+  start();
+  window.addEventListener("resize", function () { size(); draw(performance.now()); });
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") start(); });
+})();
+</script>
+</body>
+</html>
